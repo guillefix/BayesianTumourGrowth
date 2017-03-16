@@ -51,11 +51,13 @@ tspan = [0 , 100];
 [t,V] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
 tspan,V0);
 
-hold on
-plot(t,V);
-legend({'Vc','Vr'});
-hold off
+% Visualisation
+% hold on
+% plot(t,V);
+% legend({'Vc','Vr'});
+% hold off
 
+V_fakedata = generate_fake_data(V0, tspan);
 
 
 end

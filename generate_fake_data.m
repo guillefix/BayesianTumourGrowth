@@ -1,4 +1,4 @@
-function [Vdata1, Vdata2] = generate_fake_data()
+function [Vdata1, Vdata2] = generate_fake_data(V0, tspan)
 
 rc=1;
 Kc=1;
@@ -8,8 +8,8 @@ Kr=2;
 lr=2;
 
 dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
-V0=[1;2];
-tspan=[0,5];
+% V0=[1;2];
+% tspan=[0,5];
 [t,V]=ode45(dvdt,tspan,V0);
 plot(t,V(:,1))
 hold on
