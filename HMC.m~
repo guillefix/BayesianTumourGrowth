@@ -1,16 +1,16 @@
-x= [1,1,1,2,2,2,1];
+x= [1,1,1,1,1,1,0.1];
 [Vdata1, Vdata2] = generate_fake_data();
 gradE = @(x) gradEdata(x,Vdata1,Vdata2);
 findE = @(x) findEdata(x,Vdata1,Vdata2);
 g = gradE(x);
 E = findE(x);
 epsilon=0.055;
-xs=[];
-L=50;
-Tau =19;
+xs=x;
+L=1;
+Tau =100;
 for l = 1:L
     l
-    p = 0.01*randn(length(x),1);
+    p = 0.5*randn(length(x),1);
     H = p' * p / 2 + E
 
     xnew = x';
