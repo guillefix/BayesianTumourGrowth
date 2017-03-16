@@ -1,0 +1,74 @@
+With the following model:
+
+function dVdt = ode_model(t, V, rc, Kc,lc,rr,Kr,lr)
+
+dVdt = zeros(2,1);
+
+dVdt(1) = V(1)*(rc*(1-V(1)/Kc)-lr*V(2));
+dVdt(2) = V(2)*(rr*(1-V(2)/Kr)-lc*V(1));
+
+Trying to approximate the parameters of the following fake data generation model:
+
+function [Vdata1, Vdata2] = generate_fake_data(V0, tspan, sampled_times,...
+    standard_deviation_noise)
+
+rc=1;
+Kc=1;
+lc=1;
+rr=2;
+Kr=2;
+lr=2;
+
+dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
+
+With the following "hyper"parameter values:
+
+number_of_iterations = 10000;
+beginning_time = 0;
+end_time = 100;
+tspan = [beginning_time , end_time];
+sampling_timestep = 0.01;
+sampled_times = beginning_time:sampling_timestep:end_time;
+number_of_sampled_times_per_dependent_variable = size(sampled_times,2);
+total_number_of_sampled_times = 2*number_of_sampled_times_per_dependent_variable;
+tolerance = 0.01*total_number_of_sampled_times;
+standard_deviation_noise = 0.01;
+
+V0 = [1, 2];
+
+% Boundaries on parameters
+lower_bound_rc = 0;
+upper_bound_rc = 3;
+
+lower_bound_Kc = 0;
+upper_bound_Kc = 3;
+
+lower_bound_lc = 0;
+upper_bound_lc = 3;
+
+lower_bound_rr = 0;
+upper_bound_rr = 3;
+
+lower_bound_Kr = 0;
+upper_bound_Kr = 3;
+
+lower_bound_lr = 0;
+upper_bound_lr = 3;
+
+
+====== Results =======
+
+Approximate posterior means for parameters
+rc = 1.3344
+Kc = 1.3657
+lc = 1.2755
+rr = 1.6483
+Kr = 2.0074
+lr = 1.9852
+Number of accepted parameters
+For rc: 491
+For Kc: 491
+For lc: 491
+For rr: 491
+For Kr: 491
+For lr: 491
