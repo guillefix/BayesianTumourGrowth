@@ -1,3 +1,5 @@
+function [Vdata1, Vdata2] = generate_fake_data()
+
 rc=1;
 Kc=1;
 lc=1;
@@ -14,7 +16,8 @@ hold on
 plot(t,V(:,2))
 
 ts=1:0.01:5;
-Vdata1=interp1(t,V(:,1),ts)
-Vdata1=Vdata1+0.01*randn(1,length(Vdata1))
-Vdata2=interp1(t,V(:,2),ts)
-Vdata2=Vdata2+0.01*randn(1,length(Vdata2))
+Vdata1=interp1(t,V(:,1),ts);
+Vdata1=Vdata1+0.01*randn(1,length(Vdata1));
+Vdata2=interp1(t,V(:,2),ts);
+Vdata2=Vdata2+0.01*randn(1,length(Vdata2));
+end
