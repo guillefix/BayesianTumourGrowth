@@ -1,62 +1,118 @@
 function ABC()
 
-number_of_parameters = 6;
+number_of_iterations = 1000;
+beginning_time = 0;
+end_time = 100;
+tspan = [beginning_time , end_time];
+sampling_timestep = 0.01;
+sampled_times = beginning_time:sampling_timestep:end_time;
+number_of_sampled_times_per_dependent_variabl = size(sampled_times,2);
+tolerance = 0.1*number_of_sampled_times;
 
-%% 1st step of the ABC algorithm
+accepted_rc_array = nan(number_of_iterations,1);
+accepted_Kc_array = nan(number_of_iterations,1);
+accepted_lc_array = nan(number_of_iterations,1);
+accepted_rr_array = nan(number_of_iterations,1);
+accepted_Kr_array = nan(number_of_iterations,1);
+accepted_lr_array = nan(number_of_iterations,1);
+
+V0 = [1, 1];
 
 % Boundaries on parameters
 lower_bound_rc = 0;
-upper_bound_rc = 1;
+upper_bound_rc = 10;
 
 lower_bound_Kc = 0;
-upper_bound_Kc = 1;
+upper_bound_Kc = 10;
 
 lower_bound_lc = 0;
-upper_bound_lc = 1;
+upper_bound_lc = 10;
 
 lower_bound_rr = 0;
-upper_bound_rr = 1;
+upper_bound_rr = 10;
 
 lower_bound_Kr = 0;
-upper_bound_Kr = 1;
+upper_bound_Kr = 10;
 
 lower_bound_lr = 0;
-upper_bound_lr = 1;
-
-% Sample parameters from uniform prior
-rc =  lower_bound_rc + ...
-    (upper_bound_rc-lower_bound_rc).*rand;
-
-Kc =  lower_bound_Kc + ...
-    (upper_bound_Kc-lower_bound_Kc).*rand;
-
-lc =  lower_bound_lc + ...
-    (upper_bound_lc-lower_bound_lc).*rand;
-
-rr =  lower_bound_rr + ...
-    (upper_bound_rr-lower_bound_rr).*rand;
-
-Kr =  lower_bound_Kr + ...
-    (upper_bound_Kr-lower_bound_Kr).*rand;
-
-lr =  lower_bound_lr + ...
-    (upper_bound_lr-lower_bound_lr).*rand;
+upper_bound_lr = 10;
 
 
-%% 2nd step of the ABC algorithm
 
-V0 = [1, 1];
-tspan = [0 , 100];
+for iteration = 1:number_of_iterations
 
-[t,V] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
-tspan,V0);
+    %% 1st step of the ABC algorithm
 
-hold on
-plot(t,V);
-legend({'Vc','Vr'});
-ho
+    % Sample parameters from uniform prior
+    rc =  lower_bound_rc + ...
+        (upper_bound_rc-lower_bound_rc).*rand();
+
+    Kc =  lower_bound_Kc + ...
+        (upper_bound_Kc-lower_bound_Kc).*rand();
+
+    lc =  lower_bound_lc + ...
+        (upper_bound_lc-lower_bound_lc).*rand();
+
+    rr =  lower_bound_rr + ...
+        (upper_bound_rr-lower_bound_rr).*rand();
+
+    Kr =  lower_bound_Kr + ...
+        (upper_bound_Kr-lower_bound_Kr).*rand();
+
+    lr =  lower_bound_lr + ...
+        (upper_bound_lr-lower_bound_lr).*rand();
 
 
+    %% 2nd step of the ABC algorithm
+
+    [t,V_simulated] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
+    tspan,V0);
+
+    % Visualisation
+    % hold on
+    % plot(t,V);
+    % legend({'Vc','Vr'});
+    % hold off
+    
+    
+
+    [V_fakedata_1, V_fakedata_2] = generate_fake_data(V0, tspan, sampled_times);
+    
+    V_simulated_1_no_noise=interp1(t,V_simulated(:,1),sampled_times);
+    V_simulated_2_no_noise=interp1(t,V_simulated(:,2),sampled_times);
+    
+    V_simulated_1 = V_simulated_1_no_noise + 0.01*randn(1,number_of_sampled_times);
+    V_simulated_2 = V_simulated_2_no_noise + 0.01*randn(1,number_of_sampled_times);
+    
+    sum_squared_errors_V_1 = sum((V_simulated_1 - V_fakedata_1).^2);
+    sum_squared_errors_V_2 = sum((V_simulated_2 - V_fakedata_2).^2);
+    
+    total_squared_errors = sum_squared_errors_V_1 + sum_squared_errors_V_2;
+    
+    if (total_squared_errors <= tolerance)
+        accepted_rc_array(iteration) = rc;
+        accepted_Kc_array(iteration) = Kc;
+        accepted_lc_array(iteration) = lc;
+        accepted_rr_array(iteration) = rr;
+        accepted_Kr_array(iteration) = Kr;
+        accepted_lr_array(iteration) = lr;
+    end
+end
+
+approximate_posterior_mean_rc = nanmean(accepted_rc_array);
+approximate_posterior_mean_Kc = nanmean(accepted_Kc_array);
+approximate_posterior_mean_lc = nanmean(accepted_lc_array);
+approximate_posterior_mean_rr = nanmean(accepted_rr_array);
+approximate_posterior_mean_Kr = nanmean(accepted_Kr_array);
+approximate_posterior_mean_lr = nanmean(accepted_lr_array);
+
+display('Approximate posterior means for parameters');
+display(['rc = ', num2str(approximate_posterior_mean_rc)]);
+display(['Kc = ', num2str(approximate_posterior_mean_Kc)]);
+display(['lc = ', num2str(approximate_posterior_mean_lc)]);
+display(['rr = ', num2str(approximate_posterior_mean_rr)]);
+display(['Kr = ', num2str(approximate_posterior_mean_Kr)]);
+display(['lr = ', num2str(approximate_posterior_mean_lr)]);
 
 end
 
