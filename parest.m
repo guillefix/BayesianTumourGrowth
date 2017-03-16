@@ -7,7 +7,7 @@ V2=Vdata2;
 % [y, Ty] = resample(p(:,2),p(:,1),fs);
 
 % Creating matlab data object
-data = iddata([V1;V2],[],1/0.1721)
+data = iddata([V1',V2'],[],0.01)
 
 % Setting up grey-box model
 % free parameters
@@ -19,17 +19,23 @@ Kr=1;
 lr=1;
 order         = [2 0 2];
 parameters    = [rc,Kc,lc,rr,Kr,lr];
-initial_states = [1;1];
+initial_states = [1;2];
 Ts            = 0;
 nonlinear_model = idnlgrey('ode',order,parameters,initial_states,Ts);
 
 % Setting up parameter bounds
 nonlinear_model.Parameters(1).Minimum = 0;
-nonlinear_model.Parameters(1).Maximum = 1;
+nonlinear_model.Parameters(1).Maximum = 2;
 nonlinear_model.Parameters(2).Minimum = 0;
-nonlinear_model.Parameters(2).Maximum = 1;
+nonlinear_model.Parameters(2).Maximum = 2;
 nonlinear_model.Parameters(3).Minimum = 0;
-nonlinear_model.Parameters(3).Maximum = 1
+nonlinear_model.Parameters(3).Maximum = 2;
+nonlinear_model.Parameters(4).Minimum = 0;
+nonlinear_model.Parameters(4).Maximum = 3;
+nonlinear_model.Parameters(5).Minimum = 0;
+nonlinear_model.Parameters(5).Maximum = 3;
+nonlinear_model.Parameters(6).Minimum = 0;
+nonlinear_model.Parameters(6).Maximum = 3;
 
 % Settings for fitting method
 opt = nlgreyestOptions('SearchMethod','grad');
@@ -44,8 +50,8 @@ rc=nonlinear_model.Parameters(1).Value
 Kc=nonlinear_model.Parameters(2).Value
 lc=nonlinear_model.Parameters(3).Value
 rr=nonlinear_model.Parameters(4).Value
-Kr=nonlinear_model.Parameters(4).Value
-lr=nonlinear_model.Parameters(4).Value
+Kr=nonlinear_model.Parameters(5).Value
+lr=nonlinear_model.Parameters(6).Value
 
 % Plot data and ODE fit
 compare(data,nonlinear_model);
