@@ -70,7 +70,7 @@ for iteration = 1:number_of_iterations
     [t,V_simulated] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
     tspan,V0);
 
-    % Visualisation
+    % Visualisationotal_squared_errors
     % hold on
     % plot(t,V);
     % legend({'Vc','Vr'});
@@ -116,7 +116,7 @@ number_of_accepted_rr = sum(~isnan(accepted_rr_array));
 number_of_accepted_Kr = sum(~isnan(accepted_Kr_array));
 number_of_accepted_lr = sum(~isnan(accepted_lr_array));
 
-
+dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
 display('Approximate posterior means for parameters');
 display(['rc = ', num2str(approximate_posterior_mean_rc)]);
 display(['Kc = ', num2str(approximate_posterior_mean_Kc)]);
