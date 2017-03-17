@@ -1,25 +1,40 @@
-x= [1,1,1,2,2,2,1];
-[Vdata1, Vdata2] = generate_fake_data();
-gradE = @(x) gradEdata(x,Vdata1,Vdata2);
-findE = @(x) findEdata(x,Vdata1,Vdata2);
+x= [0.5,0.5,0.5,0.5,0.5,0.5];
+V0=[0.031;0.015];
+tspan=[0,15];
+sampled_times=1:0.5:15;
+standard_deviation_noise=0.01;
+[Vdata1, Vdata2] = generate_fake_data(V0, tspan, sampled_times,standard_deviation_noise);
+gradE = @(x) gradEdata(x,Vdata1,Vdata2,V0,sampled_times,standard_deviation_noise,tspan);
+findE = @(x) findEdata(x,Vdata1,Vdata2,V0,sampled_times,standard_deviation_noise,tspan);
 g = gradE(x);
 E = findE(x);
-epsilon=0.055;
+epsilon=0.005;
 xs=[];
-L=50;
-Tau =19;
+L=100;
+Tau =100;
 for l = 1:L
     l
-    p = 0.01*randn(length(x),1);
+    p = 1*randn(length(x),1); %0.01*
+%     pc=p([1,2,4,5]);
+%     pc(pc<0) = 0;
+%     p([1,2,4,5]) = pc;
     H = p' * p / 2 + E
 
     xnew = x';
+%     xnew([1,2,4,5]) = abs(xnew([1,2,4,5]));
     gnew = g;
     for tau = 1:Tau
-        p = p - epsilon * gnew / 2 ; 
+        p = p - epsilon * gnew / 2 ;
+%         pc=p([1,2,4,5]);
+%         pc(pc<0) = 0;
+%         p([1,2,4,5]) = pc;
         xnew = xnew + epsilon * p;
+%         xnew([1,2,4,5]) = abs(xnew([1,2,4,5]));
         gnew = gradE(xnew);
         p = p - epsilon * gnew / 2 ; 
+%         pc=p([1,2,4,5]);
+%         pc(pc<0) = 0;
+%         p([1,2,4,5]) = pc;
     end
     
     Enew = findE(xnew);
@@ -37,4 +52,5 @@ for l = 1:L
     end
 end
 sizes=size(xs);
+xs(:,[1,2,4,5]) = xs(:,[1,2,4,5]).*xs(:,[1,2,4,5]);
 sum(xs,1)/(sizes(1))
