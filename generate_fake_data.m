@@ -13,9 +13,9 @@ dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
 % tspan=[0,5];
 [t,V]=ode45(dvdt,tspan,V0);
 
-plot(t,V(:,1))
-hold on
-plot(t,V(:,2))
+% plot(t,V(:,1))
+% hold on
+% plot(t,V(:,2))
 
 % ts=1:0.01:5;
 
