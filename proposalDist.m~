@@ -5,7 +5,7 @@ function p = proposalDist(xnew,x,sigma)
     if (any(xnewc < 0))
         p = 0;
     else
-        p = 2^length(xnewc)*(1/(2*pi*sigma^2)^(length(x)/2))*exp(-norm(xnew-x)^2/(2*sigma^2));
+        p = 2^4*(1/(2*pi*sigma^2)^(length(x)/2))*exp(-norm(xnew-x)^2/(2*sigma^2));
     end
 
 end

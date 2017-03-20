@@ -11,11 +11,13 @@ functions {
 }
 
 data {
+  int N;
+  int odds[N,2];
   int<lower=1> Tind;
   int<lower=1> Tsums;
-  real V1[Tind];
-  real V2[Tind];
-  real Vsum[Tsums];
+  real V1[N,Tind];
+  real V2[N,Tind];
+  real Vsum[N,Tsums];
   real ts_ind[Tind];
   real ts_sums[Tsums];
   ## real V0[2];
@@ -31,7 +33,7 @@ parameters {
   real<lower=0> theta1[4];
   real lambda[2];
   real<lower=0> sigma;
-  real<lower=0> V0[2];
+  real<lower=0> V0;
 }
 transformed parameters {
   real theta[6];
@@ -44,16 +46,18 @@ transformed parameters {
 }
 
 model {
-  real V_hat[T,2];
-  sigma ~ cauchy(0,1); ## Prior
-  theta ~ normal(1,2); ## Prior for alpha, beta
-  V0 ~ normal(1,2); ## Prior for initial #
-  ## Solve ODE at current parameter values
-  V_hat = integrate_ode_rk45(ode_diff, V0, t0, ts,
-    theta, x_r, x_i);
-  ## Likelihood
-  for (t in ts) {
-    V1[t] ~ normal(V_hat[t,1],sigma);
-    V2[t] ~ normal(V_hat[t,2],sigma);
+  for i in 1:N {
+    real V_hat[T,2];
+    sigma ~ cauchy(0,1); ## Prior
+    theta ~ normal(1,2); ## Prior for alpha, beta
+    V0 ~ normal(1,2); ## Prior for initial #
+    ## Solve ODE at current parameter values
+    V_hat = integrate_ode_rk45(ode_diff, c(V0*odds[i,1],V0*odds[i,2]), t0, ts,
+      theta, x_r, x_i);
+      ## Likelihood
+      for (t in ts) {
+        V1[i,t] ~ normal(V_hat[t,1],sigma);
+        V2[i,t] ~ normal(V_hat[t,2],sigma);
+      }
   }
 }
