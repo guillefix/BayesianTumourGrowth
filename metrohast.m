@@ -1,4 +1,5 @@
-x = ones(1,7);
+x0 = ones(1,7);
+x=x0;
 V0=[0.031;0.015];
 tspan=[0,15];
 % sampled_times=1:0.5:15;
@@ -13,10 +14,10 @@ standard_deviation_noise=0.05;
 NLL = @(x) findLogLikRealData(x,V_data_sum,Vdata1,Vdata2,V0,sampled_times_individual_data, sampled_times_sum_data,standard_deviation_noise,tspan);
 NLLsig = @(x) findLogLikRealData(x,V_data_sum,Vdata1,Vdata2,V0,sampled_times_individual_data, sampled_times_sum_data,x(7),tspan);
 
-NumSample=100000;
+NumSample=10000;
 
 xs = [];
-sigma=0.05;
+sigma=0.02;
 
 for i=1:NumSample
    if (mod(i,NumSample/100) == 0) disp(i);
@@ -24,7 +25,8 @@ for i=1:NumSample
    xnew = proposalSample(x,sigma);
    if (xnew(2) < 0 || xnew(5) < 0 || xnew(1) < 0 || xnew(4) < 0) continue;
    end
-   r = exp(-NLLsig(xnew))*proposalDist(x,xnew,sigma)/(exp(-NLLsig(x))*proposalDist(xnew,x,sigma));
+   r = exp(-NLLsig(xnew))*proposalDist(xnew,x0,1)*proposalDist(x,xnew,sigma)...
+       /(exp(-NLLsig(x))*proposalDist(x,x0,1)*proposalDist(xnew,x,sigma));
    if (rand < r)
        x = xnew;
        xs = [xs; x];
