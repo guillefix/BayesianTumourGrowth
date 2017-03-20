@@ -8,11 +8,14 @@ sampled_times_individual_data=1:0.5:15;
 sampled_times_sum_data=1:0.5:15;
 standard_deviation_noise=0.05;
 % [Vdata1, Vdata2] = generate_fake_data(V0, tspan, sampled_times,standard_deviation_noise);
-[V_data_sum,Vdata1, Vdata2] = generate_fake_realistic_data(V0, tspan, sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
+[V_data_sum,Vdata1, Vdata2] = generate_fake_realistic_data(V0, tspan,...
+    sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
 % neg log likelihood
 % NLL = @(x) findLogLikData(x,Vdata1,Vdata2,V0,sampled_times,standard_deviation_noise,tspan);
-NLL = @(x) findLogLikRealData(x,V_data_sum,Vdata1,Vdata2,V0,sampled_times_individual_data, sampled_times_sum_data,standard_deviation_noise,tspan);
-NLLsig = @(x) findLogLikRealData(x,V_data_sum,Vdata1,Vdata2,V0,sampled_times_individual_data, sampled_times_sum_data,x(7),tspan);
+NLL = @(x) findLogLikRealData(x,V_data_sum,Vdata1,Vdata2,V0,...
+    sampled_times_individual_data, sampled_times_sum_data,standard_deviation_noise,tspan);
+NLLsig = @(x) findLogLikRealData(x,V_data_sum,Vdata1,Vdata2,V0,...
+    sampled_times_individual_data, sampled_times_sum_data,x(7),tspan);
 
 NumSample=10000;
 
@@ -31,7 +34,6 @@ for i=1:NumSample
        x = xnew;
        xs = [xs; x];
    end
-   
 end
 xs=xs(end/2:end,:);
 sizes=size(xs);

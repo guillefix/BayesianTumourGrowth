@@ -1,23 +1,59 @@
 function ABC()
 
 number_of_iterations = 3000;
-beginning_time = 0;
+beginning_time = 1;
 end_time = 15;
+time_first_individual_data = 10;
+time_first_sum_data = 3;
 number_of_parameters = 6;
-tspan = [beginning_time , end_time];
-sampling_timestep_individual_data = 1;
-sampling_timestep_sum_data = 1;
-sampled_times_individual_data = beginning_time:sampling_timestep_individual_data:...
-    end_time;
-sampled_times_sum_data = beginning_time:sampling_timestep_sum_data:end_time;
 number_of_individual_variables = 2;
+number_of_different_ratios_tried = 5;
+odds_of_initial_values = [1,3,1,1,0;
+                          0,1,1,3,1];
+
+offset_time_first_individual_data = time_first_individual_data - beginning_time;
+offset_time_first_sum_data = time_first_sum_data - beginning_time;
+tspan = [beginning_time , end_time];
+% sampling_timestep_individual_data = 5;
+sampling_timestep_sum_data = 2;
+sampled_times_individual_data = beginning_time+offset_time_first_individual_data:...
+    sampling_timestep_individual_data:...
+    end_time;
+sampled_times_sum_data = beginning_time+offset_time_first_sum_data:...
+    sampling_timestep_sum_data:end_time;
+
+
 number_of_sampled_times_individual_variables = size(sampled_times_individual_data,2);
 number_of_sampled_times_sum = size(sampled_times_sum_data,2);
+
+V_sum_data_average_PC3_0Gy = [0.0636679167 0.0661274167 0.0987616667 0.16010675 0.25829375 0.280966;
+    0.0574364167 0.0799836667 0.1146740833 0.2577545833 0.41375175 0.4119126667;
+    0.0589646667 0.0776658333 0.1201630833 0.27822025 0.5145295 0.557941;
+    0.0544568333 0.08331 0.1326801667 0.35862575 0.5359255 0.523286;
+    0.0503110833 0.0921101667 0.1695063333 0.4100345833	0.5936558333 0.6179516667];
+
+V_individual_control_data_PC3_0Gy = [0.99 0.98;
+    0.56 0.45;
+    0.32 0.18;
+    0.12 0.06;
+    0.00 0.00];
+
+V_individual_resistant_data_PC3_0Gy = [0.00 0.00;
+    0.43 0.53;
+    0.67 0.80;
+    0.87 0.92;
+    0.99 0.97];
+
+
+
 total_number_of_sampled_times = number_of_individual_variables *...
     number_of_sampled_times_individual_variables + ...
-    number_of_sampled_times_sum;
+    number_of_sampled_times_V_fakedata_1sum;
+
 tolerance = 0.01*total_number_of_sampled_times;
 standard_deviation_noise = 0.01;
+number_of_experimental_repeats = 12;
+standard_deviation_sum_normal = standard_deviation_noise / sqrt(number_of_experimental_repeats);
 
 accepted_rc_array = nan(number_of_iterations,1);
 accepted_Kc_array = nan(number_of_iterations,1);
@@ -25,16 +61,17 @@ accepted_lc_array = nan(number_of_iterations,1);
 accepted_rr_array = nan(number_of_iterations,1);
 accepted_Kr_array = nan(number_of_iterations,1);
 accepted_lr_array = nan(number_of_iterations,1);
-
-V0 = [1, 2];
+accepted_V0_sum_array = nan(number_of_iterations,1);
 
 % Generating Cauchy prior
+% Initial values for PC3	0Gy
 cauchy_prior_rc = makedist('tLocationScale','mu',0.236,'sigma',1,'nu',1);
 cauchy_prior_Kc = makedist('tLocationScale','mu',0.473,'sigma',1,'nu',1);
 cauchy_prior_lc = makedist('tLocationScale','mu',0.655,'sigma',1,'nu',1);
 cauchy_prior_rr = makedist('tLocationScale','mu',0.401,'sigma',1,'nu',1);
 cauchy_prior_Kr = makedist('tLocationScale','mu',0.773,'sigma',1,'nu',1);
 cauchy_prior_lr = makedist('tLocationScale','mu',0.480,'sigma',1,'nu',1);
+cauchy_prior_V0_sum = makedist('tLocationScale','mu',0.031 + 0.015,'sigma',1,'nu',1);
 
 % % Parameters for normal prior
 % mean_rc = 2;
@@ -55,7 +92,11 @@ cauchy_prior_lr = makedist('tLocationScale','mu',0.480,'sigma',1,'nu',1);
 % mean_lr = 2;
 % standard_deviation_lr = 1;
 
+% [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
+% lc_true,rr_true,Kr_true,lr_true] = generate_fake_realistic_data(V0, tspan, ...
+% sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
 
+%V0 = nan(number_of_different_ratios_tried,number_of_individual_variables);
 
 for iteration = 1:number_of_iterations
 
@@ -68,40 +109,62 @@ for iteration = 1:number_of_iterations
     rr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_rr);
     Kr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_Kr);
     lr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_lr);
+    V0_sum = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_V0_sum);
+    
+    % Initial values for sum squared errors
+    
+    sum_squared_errors_V_1 = 0;
+    sum_squared_errors_V_2 = 0;
+    sum_squared_errors_sum = 0;
     
     %% 2nd step of the ABC algorithm
-
-    [t,V_simulated] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
-    tspan,V0);
-
-    % Visualisationotal_squared_errors
-    % hold on
-    % plot(t,V);
-    % legend({'Vc','Vr'});
-    % hold off
-
-    [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
-    lc_true,rr_true,Kr_true,lr_true] = generate_fake_realistic_data(V0, tspan, ...
-    sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
     
-    V_simulated_1_no_noise = interp1(t,V_simulated(:,1),sampled_times_individual_data);
-    V_simulated_2_no_noise = interp1(t,V_simulated(:,2),sampled_times_individual_data);
-    V_simulated_sum_no_noise = interp1(t,V_simulated(:,1) + V_simulated(:,2), ...
-        sampled_times_sum_data);
+    for iteration_with_certain_ratio=1:number_of_different_ratios_tried
+        
+        sum_of_odds = odds_of_initial_values(iteration_with_certain_ratio,1) + ...
+            odds_of_initial_values(iteration_with_certain_ratio,2);
+        ratio_V0_C = odds_of_initial_values(iteration_with_certain_ratio,1) / ...
+            sum_of_odds;
+        ratio_V0_R = odds_of_initial_values(iteration_with_certain_ratio,2) / ...
+            sum_of_odds;
+        
+        V0 = [V0_sum*ratio_V0_C, V0_sum*ratio_V0_R]; 
+            
+
+        [t,V_simulated] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
+        tspan,V0);
+
+        % Visualisation
+        % hold on
+        % plot(t,V);
+        % legend({'Vc','Vr'});
+        % hold off
+
+
+        V_simulated_1 = transpose(V_simulated(:,1)) + standard_deviation_noise*...
+            randn(1,length(V_simulated(:,1)));
+        V_simulated_2 = transpose(V_simulated(:,2)) + standard_deviation_noise*...
+            randn(1,length(V_simulated(:,2)));
+        V_simulated_sum = V_simulated(:,1) + V_simulated(:,2) + ...
+            standard_deviation_sum_normal*...
+            randn(1,length(V_simulated(:,1) + V_simulated(:,2)));
     
-    V_simulated_1 = V_simulated_1_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_individual_variables);
-    V_simulated_2 = V_simulated_2_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_individual_variables);
-    V_simulated_sum = V_simulated_sum_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_sum);
+        V_simulated_1 = interp1(t,V_simulated_1,sampled_times_individual_data);
+        V_simulated_2 = interp1(t,V_simulated_2,sampled_times_individual_data);
+        V_simulated_sum = interp1(t,V_simulated_sum, sampled_times_sum_data);
     
-    sum_squared_errors_V_1 = sum((V_simulated_1 - V_fakedata_1).^2);
-    sum_squared_errors_V_2 = sum((V_simulated_2 - V_fakedata_2).^2);
-    sum_squared_errors_sum = sum((V_simulated_sum - V_fakedata_sum).^2);
+        sum_squared_errors_V_1 = sum_squared_errors_V_1 + ...
+            sum((V_simulated_1 - V_individual_data_average_PC3_0Gy).^2);
+        sum_squared_errors_V_2 = sum_squared_errors_V_2 + ...
+            sum((V_simulated_2 - V_fakedata_2).^2);
+        sum_squared_errors_sum = sum_squared_errors_sum + ...
+            sum((V_simulated_sum - V_sum_data_average_PC3_0Gy(iteration_with_certain_ratio))...
+            .^2);
+        
+    end
     
     total_squared_errors = sum_squared_errors_V_1 + sum_squared_errors_V_2 + ...
-        sum_squared_errors_sum;
+        sum_squared_errors_sum/number_of_individual_variables;
     
     if (total_squared_errors <= tolerance)
         accepted_rc_array(iteration) = rc;
@@ -115,7 +178,7 @@ end
 
 approximate_posterior_mean_rc = nanmean(accepted_rc_array);
 approximate_posterior_mean_Kc = nanmean(accepted_Kc_array);
-approximate_posterior_mean_lc = nanmean(accepted_lc_array);
+approximate_posterior_mean_lc = nanmean(accepted_lcget_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_lr);_array);
 approximate_posterior_mean_rr = nanmean(accepted_rr_array);
 approximate_posterior_mean_Kr = nanmean(accepted_Kr_array);
 approximate_posterior_mean_lr = nanmean(accepted_lr_array);
@@ -251,11 +314,18 @@ hold off
 title('Posterior distribution for lr');
 end
 
-function parameter = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior)
+function parameter = get_positive_parameter_sampled_from_cauchy_distribution(...
+    cauchy_prior,sample_size)
+
+    % Default parameter value
+    if nargin < 2
+        sample_size = 1;
+    end
+    
     parameter_negative = true;
     
     while parameter_negative
-    parameter = random(cauchy_prior,1,1);
+    parameter = random(cauchy_prior,1,sample_size);
     
         if ~(parameter < 0)
             parameter_negative = false;
