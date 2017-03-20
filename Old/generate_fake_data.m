@@ -13,9 +13,16 @@ dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
 % tspan=[0,5];
 [t,V]=ode45(dvdt,tspan,V0);
 
+<<<<<<< HEAD:generate_fake_data.m
 % plot(t,V(:,1))
 % hold on
 % plot(t,V(:,2))
+=======
+plot(t,V(:,1))
+hold on
+plot(t,V(:,2))
+hold off
+>>>>>>> 362f48293cf59e70b38ca9fc90c4bd9755bdf859:Old/generate_fake_data.m
 
 % ts=1:0.01:5;
 
