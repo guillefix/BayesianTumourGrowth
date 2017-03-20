@@ -32,6 +32,7 @@ for i=1:NumSample
        x = xnew;
        xs = [xs; x];
    end
+   
 end
 xs=xs(end/2:end,:);
 sizes=size(xs);

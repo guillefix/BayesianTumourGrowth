@@ -23,6 +23,8 @@ total_number_of_sampled_times = number_of_individual_variables *...
 
 tolerance = 0.01*total_number_of_sampled_times;
 standard_deviation_noise = 0.01;
+numbe
+standard_deviation_sum_normal = 
 
 accepted_rc_array = nan(number_of_iterations,1);
 accepted_Kc_array = nan(number_of_iterations,1);
@@ -38,7 +40,8 @@ cauchy_prior_rc = makedist('tLocationScale','mu',0.236,'sigma',1,'nu',1);
 cauchy_prior_Kc = makedist('tLocationScale','mu',0.473,'sigma',1,'nu',1);
 cauchy_prior_lc = makedist('tLocationScale','mu',0.655,'sigma',1,'nu',1);
 cauchy_prior_rr = makedist('tLocationScale','mu',0.401,'sigma',1,'nu',1);
-cauchy_prior_Kr = makedist('tLocationScale','mu',0.773,'sigma',1,'nu',1);
+cauchy_prior_Kr = makedist('tLocationScale','mu'    [t,V_simulated] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
+    tspan,V0);,0.773,'sigma',1,'nu',1);
 cauchy_prior_lr = makedist('tLocationScale','mu',0.480,'sigma',1,'nu',1);
 
 % % Parameters for normal prior
@@ -59,6 +62,10 @@ cauchy_prior_lr = makedist('tLocationScale','mu',0.480,'sigma',1,'nu',1);
 % 
 % mean_lr = 2;
 % standard_deviation_lr = 1;
+
+[V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
+lc_true,rr_true,Kr_true,lr_true] = generate_fake_realistic_data(V0, tspan, ...
+sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
 
 
 
@@ -85,28 +92,23 @@ for iteration = 1:number_of_iterations
     % legend({'Vc','Vr'});
     % hold off
 
-    [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
-    lc_true,rr_true,Kr_true,lr_true] = generate_fake_realistic_data(V0, tspan, ...
-    sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
+
+    V_simulated_1 = transpose(V_simulated(:,1)) + standard_deviation_noise*...
+        randn(1,length(V_simulated(:,1)));
+    V_simulated_2 = transpose(V_simulated(:,2)) + standard_deviation_noise*...
+        randn(1,length(V_simulated(:,2)));
+    V_simulated_sum = V_simulated_1 + V_simulated_2;
     
-    V_simulated_1_no_noise = interp1(t,V_simulated(:,1),sampled_times_individual_data);
-    V_simulated_2_no_noise = interp1(t,V_simulated(:,2),sampled_times_individual_data);
-    V_simulated_sum_no_noise = interp1(t,V_simulated(:,1) + V_simulated(:,2), ...
-        sampled_times_sum_data);
-    
-    V_simulated_1 = V_simulated_1_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_individual_variables);
-    V_simulated_2 = V_simulated_2_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_individual_variables);
-    V_simulated_sum = V_simulated_sum_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_sum);
+    V_simulated_1 = interp1(t,V_simulated_1,sampled_times_individual_data);
+    V_simulated_2 = interp1(t,V_simulated_2,sampled_times_individual_data);
+    V_simulated_sum = interp1(t,V_simulated_sum, sampled_times_sum_data);
     
     sum_squared_errors_V_1 = sum((V_simulated_1 - V_fakedata_1).^2);
     sum_squared_errors_V_2 = sum((V_simulated_2 - V_fakedata_2).^2);
     sum_squared_errors_sum = sum((V_simulated_sum - V_fakedata_sum).^2);
     
     total_squared_errors = sum_squared_errors_V_1 + sum_squared_errors_V_2 + ...
-        sum_squared_errors_sum;
+        sum_squared_errors_sum/number_of_individual_variables;
     
     if (total_squared_errors <= tolerance)
         accepted_rc_array(iteration) = rc;
@@ -165,7 +167,8 @@ display(['lr = ', num2str(approximate_posterior_median_lr)]);
 
 display('Maximum A Posteriori (MAP) estimate for parameters');
 display(['rc = ', num2str(MAP_estimate_rc)]);
-display(['Kc = ', num2str(MAP_estimate_Kc)]);
+display(['Kc = ', num2str
+histogram(accepte(MAP_estimate_Kc)]);
 display(['lc = ', num2str(MAP_estimate_lc)]);
 display(['rr = ', num2str(MAP_estimate_rr)]);
 display(['Kr = ', num2str(MAP_estimate_Kr)]);
@@ -199,7 +202,7 @@ sum_squared_error_estimated_parameters_MAP = (rc_true - MAP_estimate_rc)^2 + ...
     (rr_true - MAP_estimate_rr)^2 + ...
     (Kr_true - MAP_estimate_Kr)^2 + ...
     (lr_true - MAP_estimate_lr)^2;
-parameter = random(cauchy_prior,1,1);
+
 display(['sum of squared_error for estimated parameters by mean posterior =', ...
     num2str(sum_squared_error_estimated_parameters_mean_posterior)]);
 
