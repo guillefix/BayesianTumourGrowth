@@ -26,9 +26,29 @@ sampled_times_sum_data = beginning_time+offset_time_first_sum_data:...
 number_of_sampled_times_individual_variables = size(sampled_times_individual_data,2);
 number_of_sampled_times_sum = size(sampled_times_sum_data,2);
 
+V_sum_data_average_PC3_0Gy = [0.0636679167 0.0661274167 0.0987616667 0.16010675 0.25829375 0.280966;
+    0.0574364167 0.0799836667 0.1146740833 0.2577545833 0.41375175 0.4119126667;
+    0.0589646667 0.0776658333 0.1201630833 0.27822025 0.5145295 0.557941;
+    0.0544568333 0.08331 0.1326801667 0.35862575 0.5359255 0.523286;
+    0.0503110833 0.0921101667 0.1695063333 0.4100345833	0.5936558333 0.6179516667];
+
+V_individual_control_data_PC3_0Gy = [0.99 0.98;
+    0.56 0.45;
+    0.32 0.18;
+    0.12 0.06;
+    0.00 0.00];
+
+V_individual_resistant_data_PC3_0Gy = [0.00 0.00;
+    0.43 0.53;
+    0.67 0.80;
+    0.87 0.92;
+    0.99 0.97];
+
+
+
 total_number_of_sampled_times = number_of_individual_variables *...
     number_of_sampled_times_individual_variables + ...
-    number_of_sampled_times_sum;
+    number_of_sampled_times_V_fakedata_1sum;
 
 tolerance = 0.01*total_number_of_sampled_times;
 standard_deviation_noise = 0.01;
@@ -134,11 +154,12 @@ for iteration = 1:number_of_iterations
         V_simulated_sum = interp1(t,V_simulated_sum, sampled_times_sum_data);
     
         sum_squared_errors_V_1 = sum_squared_errors_V_1 + ...
-            sum((V_simulated_1 - V_fakedata_1).^2);
+            sum((V_simulated_1 - V_individual_data_average_PC3_0Gy).^2);
         sum_squared_errors_V_2 = sum_squared_errors_V_2 + ...
             sum((V_simulated_2 - V_fakedata_2).^2);
         sum_squared_errors_sum = sum_squared_errors_sum + ...
-            sum((V_simulated_sum - V_fakedata_sum).^2);
+            sum((V_simulated_sum - V_sum_data_average_PC3_0Gy(iteration_with_certain_ratio))...
+            .^2);
         
     end
     
