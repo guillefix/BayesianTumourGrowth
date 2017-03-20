@@ -1,4 +1,5 @@
-function [V_data_sum,Vdata1, Vdata2] = generate_fake_realistic_data(V0, tspan, ...
+function [V_data_sum,Vdata1, Vdata2,rc_true,Kc_true,...
+    lc_true,rr_true,Kr_true,lr_true] = generate_fake_realistic_data(V0, tspan, ...
     sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise)
 
 rc=0.236;
@@ -13,10 +14,10 @@ dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
 % tspan=[0,5];
 [t,V]=ode45(dvdt,tspan,V0);
 
-plot(t,V(:,1))
-hold on
-plot(t,V(:,2))
-hold off
+% plot(t,V(:,1))
+% hold on
+% plot(t,V(:,2))
+% hold off
 
 % ts=1:0.01:5;
 
@@ -28,5 +29,12 @@ Vdata2=Vdata2+standard_deviation_noise*randn(1,length(Vdata2));
 V_data_sum_non_sampled = V(:,1) + V(:,2);
 
 V_data_sum = interp1(t,V_data_sum_non_sampled,sampled_times_sum_data);
+
+rc_true=rc;
+Kc_true=Kc;
+lc_true=lc;
+rr_true=rr;
+Kr_true=Kr;
+lr_true=lr;
 
 end

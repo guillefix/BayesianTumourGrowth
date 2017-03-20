@@ -1,18 +1,21 @@
 function ABC()
 
-number_of_iterations = 10000;
+number_of_iterations = 1000;
 beginning_time = 0;
-end_time = 100;
+end_time = 15;
 tspan = [beginning_time , end_time];
-sampling_timestep_individual_data = 0.01;
-sampling_timestep_sum_data = 0.01;
+sampling_timestep_individual_data = 5;
+sampling_timestep_sum_data = 1;
 sampled_times_individual_data = beginning_time:sampling_timestep_individual_data:...
     end_time;
 sampled_times_sum_data = beginning_time:sampling_timestep_sum_data:end_time;
-sampled_times = beginning_time:sampling_timestep:end_time;
-number_of_sampled_times_per_dependent_variable = size(sampled_times,2);
-total_number_of_sampled_times = 2*number_of_sampled_times_per_dependent_variable;
-tolerance = 0.01*total_number_of_sampled_times;
+number_of_individual_variables = 2;
+number_of_sampled_times_individual_variables = size(sampled_times_individual_data,2);
+number_of_sampled_times_sum = size(sampled_times_sum_data,2);
+total_number_of_sampled_times = number_of_individual_variables *...
+    number_of_sampled_times_individual_variables + ...
+    number_of_sampled_times_sum;
+tolerance = 0.1*total_number_of_sampled_times;
 standard_deviation_noise = 0.01;
 
 accepted_rc_array = nan(number_of_iterations,1);
@@ -81,20 +84,26 @@ for iteration = 1:number_of_iterations
     % hold off
 
     [V_fakedata_sum,V_fakedata_1, V_fakedata_2] = generate_fake_realistic_data(V0, tspan, ...
-    sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise)
+    sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
     
-    V_simulated_1_no_noise = interp1(t,V_simulated(:,1),sampled_times);
-    V_simulated_2_no_noise = interp1(t,V_simulated(:,2),sampled_times);
+    V_simulated_1_no_noise = interp1(t,V_simulated(:,1),sampled_times_individual_data);
+    V_simulated_2_no_noise = interp1(t,V_simulated(:,2),sampled_times_individual_data);
+    V_simulated_sum_no_noise = interp1(t,V_simulated(:,1) + V_simulated(:,2), ...
+        sampled_times_sum_data);
     
     V_simulated_1 = V_simulated_1_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_per_dependent_variable);
+        randn(1,number_of_sampled_times_individual_variables);
     V_simulated_2 = V_simulated_2_no_noise + standard_deviation_noise*...
-        randn(1,number_of_sampled_times_per_dependent_variable);
+        randn(1,number_of_sampled_times_individual_variables);
+    V_simulated_sum = V_simulated_sum_no_noise + standard_deviation_noise*...
+        randn(1,number_of_sampled_times_sum);
     
     sum_squared_errors_V_1 = sum((V_simulated_1 - V_fakedata_1).^2);
     sum_squared_errors_V_2 = sum((V_simulated_2 - V_fakedata_2).^2);
+    sum_squared_errors_sum = sum((V_simulated_sum - V_fakedata_sum).^2);
     
-    total_squared_errors = sum_squared_errors_V_1 + sum_squared_errors_V_2;
+    total_squared_errors = sum_squared_errors_V_1 + sum_squared_errors_V_2 + ...
+        sum_squared_errors_sum;
     
     if (total_squared_errors <= tolerance)
         accepted_rc_array(iteration) = rc;
@@ -120,7 +129,6 @@ number_of_accepted_rr = sum(~isnan(accepted_rr_array));
 number_of_accepted_Kr = sum(~isnan(accepted_Kr_array));
 number_of_accepted_lr = sum(~isnan(accepted_lr_array));
 
-dvdt = @(t,V) [V(1)*(rc*(1-V(1)/Kc)-lr*V(2));V(2)*(rr*(1-V(2)/Kr)-lc*V(1))] ;
 display('Approximate posterior means for parameters');
 display(['rc = ', num2str(approximate_posterior_mean_rc)]);
 display(['Kc = ', num2str(approximate_posterior_mean_Kc)]);
