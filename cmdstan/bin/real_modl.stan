@@ -16,8 +16,11 @@ data {
   int<lower=1> Tind;
   int<lower=1> Tsums;
   real V1[N,Tind];
+  real V1stds[N,Tind];
   real V2[N,Tind];
-  real Vsum[N,Tsums];
+  real V2stds[N,Tind];
+  real Vsums[N,Tsums];
+  real Vsumstds[N,Tsums];
   real ts_ind[Tind];
   real ts_sums[Tsums];
   ## real V0[2];
@@ -55,9 +58,15 @@ model {
     V_hat = integrate_ode_rk45(ode_diff, c(V0*odds[i,1],V0*odds[i,2]), t0, ts,
       theta, x_r, x_i);
       ## Likelihood
-      for (t in ts) {
+      for (t in Tinds) {
         V1[i,t] ~ normal(V_hat[t,1],sigma);
+        V1stds[i,t] ~ normal(0,sigma);
         V2[i,t] ~ normal(V_hat[t,2],sigma);
+        V2stds[i,t] ~ normal(0,sigma);
+      }
+      for (t in Tsums) {
+        Vsums[i,t] ~ normal(V_hat[t,1]+V_hat[t,2],sigma/sqrt(n));
+        Vsumstds[i,t] ~ normal(0,sigma/sqrt(n));
       }
   }
 }
