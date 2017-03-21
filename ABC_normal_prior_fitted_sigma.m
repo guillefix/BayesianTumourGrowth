@@ -1,13 +1,17 @@
-function ABC()
+function [approximate_posterior_median_rc,...
+approximate_posterior_median_Kc, ...
+approximate_posterior_median_lc,...
+approximate_posterior_median_rr,...
+approximate_posterior_median_Kr,...
+approximate_posterior_median_lr,...
+approximate_posterior_median_V0_sum, approximate_posterior_median_sigma] = ABC_normal_prior_fitted_sigma()
 
-number_of_iterations = 3000;
+number_of_iterations = 5000;
 beginning_time = 1;
 end_time = 15;
 time_first_individual_data = 10;
-time_first_sum_data = 3;
 sampling_timestep_individual_data = 5;
-sampling_timestep_sum_data = 2;
-number_of_parameters_to_estimate = 7;
+number_of_parameters_to_estimate = 8;
 number_of_individual_variables = 2;
 number_of_different_ratios_tried = 5;
 odds_of_initial_values = [1,0;
@@ -18,16 +22,14 @@ odds_of_initial_values = [1,0;
                       
 
 offset_time_first_individual_data = time_first_individual_data - beginning_time;
-offset_time_first_sum_data = time_first_sum_data - beginning_time;
 tspan = [beginning_time , end_time];
 
 sampled_times_individual_data = beginning_time+offset_time_first_individual_data:...
     sampling_timestep_individual_data:...
     end_time;
-sampled_times_sum_data = beginning_time+offset_time_first_sum_data:...
-    sampling_timestep_sum_data:end_time;
+sampled_times_sum_data = [3, 5, 7, 10, 13, 15];
 
-
+% from 1, mu_R, mu_C and mu_sum coming from 2..
 number_of_sampled_times_individual_variables = size(sampled_times_individual_data,2);
 number_of_sampled_times_sum = size(sampled_times_sum_data,2);
 
@@ -62,10 +64,10 @@ total_number_of_sampled_times = (number_of_individual_variables *...
     number_of_sampled_times_sum) * ...
     number_of_different_ratios_tried;
 
-tolerance = 0.1*total_number_of_sampled_times;
-standard_deviation_noise = 0.01;
+tolerance = 0.25*total_number_of_sampled_times;
+%standard_deviation_noise = 0.01;
 number_of_experimental_repeats = 12;
-standard_deviation_sum_normal = standard_deviation_noise / sqrt(number_of_experimental_repeats);
+%standard_deviation_sum_normal = standard_deviation_noise / sqrt(number_of_experimental_repeats);
 
 accepted_rc_array = nan(number_of_iterations,1);
 accepted_Kc_array = nan(number_of_iterations,1);
@@ -74,47 +76,46 @@ accepted_rr_array = nan(number_of_iterations,1);
 accepted_Kr_array = nan(number_of_iterations,1);
 accepted_lr_array = nan(number_of_iterations,1);
 accepted_V0_sum_array = nan(number_of_iterations,1);
+accepted_sigma_array = nan(number_of_iterations,1);
 
-% Generating Cauchy prior
-% Initial values for PC3	0Gy
-% cauchy_prior_rc = makedist('tLocationScale','mu',0.236,'sigma',1,'nu',1);
-% cauchy_prior_Kc = makedist('tLocationScale','mu',0.473,'sigma',1,'nu',1);
-% cauchy_prior_lc = makedist('tLocationScale','mu',0.655,'sigma',1,'nu',1);
-% cauchy_prior_rr = makedist('tLocationScale','mu',0.401,'sigma',1,'nu',1);
-% cauchy_prior_Kr = makedist('tLocationScale','mu',0.773,'sigma',1,'nu',1);
-% cauchy_prior_lr = makedist('tLocationScale','mu',0.480,'sigma',1,'nu',1);
-% cauchy_prior_V0_sum = makedist('tLocationScale','mu',0.031 + 0.015,'sigma',1,'nu',1);
+% Cauchy prior
+% cauchy_prior_rc = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
+% cauchy_prior_Kc = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
+% cauchy_prior_lc = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
+% cauchy_prior_rr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
+% cauchy_prior_Kr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
+% cauchy_prior_lr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
+% cauchy_prior_V0_sum = makedist('tLocationScale','mu',0.05,'sigma',0.5,'nu',1);
 
-% another prior, more realistic
-cauchy_prior_rc = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
-cauchy_prior_Kc = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
-cauchy_prior_lc = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
-cauchy_prior_rr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
-cauchy_prior_Kr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
-cauchy_prior_lr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
-cauchy_prior_V0_sum = makedist('tLocationScale','mu',0.05,'sigma',0.5,'nu',1);
+% Normal prior
+mean_rc = 1;
+standard_deviation_rc = 1;
+% from 1, mu_R, mu_C and mu_sum coming from 2..
 
-% % Parameters for normal pr3,1;
-% mean_rc = 2;
-% standard_deviation_rc = 1;
-% 
-% mean_Kc = 2;
-% standard_deviation_Kc = 1;
-% 
-% mean_lc = 2;
-% standard_deviation_lc = 1;(iteration_with_certain_ratio)
-% 
-% mean_rr = 2;
-% standard_deviation_rr = 1;
-% 
-% mean_Kr = 2;
-% standard_deviation_Kr = 1;
-% 
-% mean_lr = 2;
-% standard_deviation_lr = 1;
+mean_Kc = 1;
+standard_deviation_Kc = 1;
+
+mean_lc = 1;
+standard_deviation_lc = 1;
+
+mean_rr = 1;
+standard_deviation_rr = 1;
+
+mean_Kr = 1;
+standard_deviation_Kr = 1;
+
+mean_lr = 1;
+standard_deviation_lr = 1;
+
+mean_V0_sum = 1;
+standard_deviation_V0_sum = 1;
+
+mean_sigma = 1;
+standard_deviation_sigma = 1;
 
 % [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
-% lc_true,rr_true,Kr_true,lr_true] = generate_fake_realistic_data(V0, tspan, ...
+% lc_true,rr_true,Kr_true,lr_twith sigma coming from the sampled 
+% from 1, mu_R, mu_C and mu_sum coming from 2..rue] = generate_fake_realistic_data(V0, tspan, ...
 % sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
 
 %V0 = nan(number_of_different_ratios_tried,number_of_individual_variables);
@@ -123,14 +124,34 @@ for iteration = 1:number_of_iterations
 
     %% 1st step of the ABC algorithm
     % Sampling parameters for the prior
+%     Cauchy prior
+%     rc = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_rc);
+%     Kc = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_Kc);
+%     lc = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_lc);
+%     rr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_rr);
+%     Kr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_Kr);
+%     lr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_lr);
+%     V0_sum = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_V0_sum);
+
+    % normal prior
+    rc = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_rc,standard_deviation_rc);
+    Kc = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_Kc,standard_deviation_Kc);
+    lc = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_lc,standard_deviation_lc);
+    rr = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_rr,standard_deviation_rr);
+    Kr = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_Kr,standard_deviation_Kr);
+    lr = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_lr,standard_deviation_lr);
+    V0_sum = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_V0_sum,standard_deviation_V0_sum);
+    sigma = get_positive_parameter_sampled_from_normal_distribution(...
+        mean_sigma,standard_deviation_sigma);
     
-    rc = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_rc);
-    Kc = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_Kc);
-    lc = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_lc);
-    rr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_rr);
-    Kr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_Kr);
-    lr = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_lr);
-    V0_sum = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_V0_sum);
+    sigma_sum_normal = sigma / sqrt(number_of_experimental_repeats);
     
     % Initial values for sum squared errors(iteration_with_certain_ratio)
     
@@ -155,19 +176,19 @@ for iteration = 1:number_of_iterations
         [t,V_simulated] = ode45(@(t,V) ode_model(t, V, rc, Kc,lc,rr,Kr,lr), ...
         tspan,V0);
 
-        % Visualisation
+        % VisualisationV0_sum
         % hold on
         % plot(t,V);
         % legend({'Vc','Vr'});
         % hold off
 
 
-        V_simulated_1 = transpose(V_simulated(:,1)) + standard_deviation_noise*...
+        V_simulated_1 = transpose(V_simulated(:,1)) + sigma*...
             randn(1,length(V_simulated(:,1)));
-        V_simulated_2 = transpose(V_simulated(:,2)) + standard_deviation_noise*...
+        V_simulated_2 = transpose(V_simulated(:,2)) + sigma*...
             randn(1,length(V_simulated(:,2)));
         V_simulated_sum = transpose(V_simulated(:,1)) + transpose(V_simulated(:,2)) + ...
-            standard_deviation_sum_normal*...
+            sigma_sum_normal*...
             randn(1,length(V_simulated(:,1) + V_simulated(:,2)));
     
         V_simulated_1 = interp1(t,V_simulated_1,sampled_times_individual_data);
@@ -198,6 +219,7 @@ for iteration = 1:number_of_iterations
         accepted_Kr_array(iteration) = Kr;
         accepted_lr_array(iteration) = lr;
         accepted_V0_sum_array(iteration) = V0_sum;
+        accepted_sigma_array(iteration) = sigma;
     end
 end
 
@@ -208,6 +230,7 @@ approximate_posterior_mean_rr = nanmean(accepted_rr_array);
 approximate_posterior_mean_Kr = nanmean(accepted_Kr_array);
 approximate_posterior_mean_lr = nanmean(accepted_lr_array);
 approximate_posterior_mean_V0_sum = nanmean(accepted_V0_sum_array);
+approximate_posterior_mean_sigma = nanmean(accepted_sigma_array);
 
 approximate_posterior_median_rc = nanmedian(accepted_rc_array);
 approximate_posterior_median_Kc = nanmedian(accepted_Kc_array);
@@ -216,6 +239,7 @@ approximate_posterior_median_rr = nanmedian(accepted_rr_array);
 approximate_posterior_median_Kr = nanmedian(accepted_Kr_array);
 approximate_posterior_median_lr = nanmedian(accepted_lr_array);
 approximate_posterior_median_V0_sum = nanmedian(accepted_V0_sum_array);
+approximate_posterior_median_sigma = nanmedian(accepted_sigma_array);
 
 % MAP estimates
 MAP_estimate_rc = get_MAP_estimate(accepted_rc_array);
@@ -225,6 +249,7 @@ MAP_estimate_rr = get_MAP_estimate(accepted_rr_array);
 MAP_estimate_Kr = get_MAP_estimate(accepted_Kr_array);
 MAP_estimate_lr = get_MAP_estimate(accepted_lr_array);
 MAP_estimate_V0_sum = get_MAP_estimate(accepted_V0_sum_array);
+MAP_estimate_sigma = get_MAP_estimate(accepted_sigma_array);
 
 number_of_accepted_rc = sum(~isnan(accepted_rc_array));
 number_of_accepted_Kc = sum(~isnan(accepted_Kc_array));
@@ -233,6 +258,7 @@ number_of_accepted_rr = sum(~isnan(accepted_rr_array));
 number_of_accepted_Kr = sum(~isnan(accepted_Kr_array));
 number_of_accepted_lr = sum(~isnan(accepted_lr_array));
 number_of_accepted_V0_sum = sum(~isnan(accepted_V0_sum_array));
+number_of_accepted_sigma = sum(~isnan(accepted_sigma_array));
 
 display('Approximate posterior means for parameters');
 display(['rc = ', num2str(approximate_posterior_mean_rc)]);
@@ -242,6 +268,7 @@ display(['rr = ', num2str(approximate_posterior_mean_rr)]);
 display(['Kr = ', num2str(approximate_posterior_mean_Kr)]);
 display(['lr = ', num2str(approximate_posterior_mean_lr)]);
 display(['V0_sum = ', num2str(approximate_posterior_mean_V0_sum)]);
+display(['sigma = ', num2str(approximate_posterior_mean_sigma)]);
 
 display('Approximate posterior medians for parameters');
 display(['rc = ', num2str(approximate_posterior_median_rc)]);
@@ -251,6 +278,7 @@ display(['rr = ', num2str(approximate_posterior_median_rr)]);
 display(['Kr = ', num2str(approximate_posterior_median_Kr)]);
 display(['lr = ', num2str(approximate_posterior_median_lr)]);
 display(['V0_sum = ', num2str(approximate_posterior_median_V0_sum)]);
+display(['sigma = ', num2str(approximate_posterior_median_sigma)]);
 
 display('Maximum A Posteriori (MAP) estimate for parameters');
 display(['rc = ', num2str(MAP_estimate_rc)]);
@@ -260,6 +288,7 @@ display(['rr = ', num2str(MAP_estimate_rr)]);
 display(['Kr = ', num2str(MAP_estimate_Kr)]);
 display(['lr = ', num2str(MAP_estimate_lr)]);
 display(['V0_sum = ', num2str(MAP_estimate_V0_sum)]);
+display(['sigma = ', num2str(MAP_estimate_sigma)]);
 
 display('Number of accepted parameters');
 display(['For rc: ', num2str(number_of_accepted_rc)]);
@@ -269,6 +298,7 @@ display(['For rr: ', num2str(number_of_accepted_rr)]);
 display(['For Kr: ', num2str(number_of_accepted_Kr)]);
 display(['For lr: ', num2str(number_of_accepted_lr)]);
 display(['For V0 sum: ', num2str(number_of_accepted_V0_sum)]);
+display(['For sigma: ', num2str(number_of_accepted_sigma)]);
 
 sum_squared_error_estimated_parameters_mean_posterior = (rc_true_PC3_0Gy - approximate_posterior_mean_rc)^2 + ...
     (Kc_true_PC3_0Gy - approximate_posterior_mean_Kc)^2 + ...
@@ -357,6 +387,11 @@ hold on
 plot([V0_sum_true_PC3_0Gy,V0_sum_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 hold off
 title('Posterior distribution for V0 sum');
+
+subplot(number_of_parameters_to_estimate,1,8);
+
+histogram(accepted_sigma_array(~isnan(accepted_sigma_array)));
+title('Posterior distribution for sigma');
 end
 
 function parameter = get_positive_parameter_sampled_from_cauchy_distribution(...
@@ -378,8 +413,29 @@ function parameter = get_positive_parameter_sampled_from_cauchy_distribution(...
     end
 end
 
+function parameter = get_positive_parameter_sampled_from_normal_distribution(...
+    mean,standard_deviation, sample_size)
+
+    % Default parameter value
+    if nargin < 3
+        sample_size = 1;
+    end
+    
+    parameter_negative = true;
+    
+    while parameter_negative
+    parameter = normrnd(mean,standard_deviation,1,sample_size);
+    
+        if ~(parameter < 0)
+            parameter_negative = false;
+        end
+    end
+end
+
 function MAP_estimate = get_MAP_estimate(parameter_array)
 [N,edges] = histcounts(parameter_array(~isnan(parameter_array)));
 [~,argmax] = max(N);
 MAP_estimate = (edges(argmax) + edges(argmax+1))/2;
 end
+
+
