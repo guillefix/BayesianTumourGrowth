@@ -7,7 +7,7 @@ accepted_lr_array_no_nan,...
 accepted_V0_sum_array_no_nan, ...
 accepted_sigma_array_no_nan] = ABC_lognormal_prior()
 
-number_of_iterations = 30000;
+number_of_iterations = 100000;
 beginning_time = 1;
 end_time = 15;
 time_first_individual_data = 10;
