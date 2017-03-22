@@ -107,6 +107,10 @@ for parameter_sample_number = 1 : number_of_parameter_samples
     %% 1. solve the ODE model with the previously sampled (rr, Kr, lr, rc, Kc, lc, V0) 
     % and a defined ratio r (1:0, 1:1, 3:1...), the result are mu_R, mu_C, mu_sum
     
+    if (mod(parameter_sample_number,10) == 0)
+        display(['Posterior predictive ODE solving number = ', num2str(parameter_sample_number)]);
+    end
+    
     V0_samples_from_posterior(parameter_sample_number,:) =...
         [V0_sum_samples_from_posterior(parameter_sample_number)*...
         ratio_V0_C, ...
