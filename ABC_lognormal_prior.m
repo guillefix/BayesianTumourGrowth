@@ -1,12 +1,13 @@
-function [approximate_posterior_median_rc,...
-approximate_posterior_median_Kc, ...
-approximate_posterior_median_lc,...
-approximate_posterior_median_rr,...
-approximate_posterior_median_Kr,...
-approximate_posterior_median_lr,...
-approximate_posterior_median_V0_sum, approximate_posterior_median_sigma] = ABC_normal_prior_fitted_sigma()
+function [accepted_rc_array_no_nan,...
+accepted_Kc_array_no_nan, ...
+accepted_lc_array_no_nan,...
+accepted_rr_array_no_nan,...
+accepted_Kr_array_no_nan,...
+accepted_lr_array_no_nan,...
+accepted_V0_sum_array_no_nan, ...
+accepted_sigma_array_no_nan] = ABC_lognormal_prior()
 
-number_of_iterations = 5000;
+number_of_iterations = 30000;
 beginning_time = 1;
 end_time = 15;
 time_first_individual_data = 10;
@@ -64,7 +65,7 @@ total_number_of_sampled_times = (number_of_individual_variables *...
     number_of_sampled_times_sum) * ...
     number_of_different_ratios_tried;
 
-tolerance = 0.25*total_number_of_sampled_times;
+tolerance = 0.1*total_number_of_sampled_times;
 %standard_deviation_noise = 0.01;
 number_of_experimental_repeats = 12;
 %standard_deviation_sum_normal = standard_deviation_noise / sqrt(number_of_experimental_repeats);
@@ -87,40 +88,46 @@ accepted_sigma_array = nan(number_of_iterations,1);
 % cauchy_prior_lr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
 % cauchy_prior_V0_sum = makedist('tLocationScale','mu',0.05,'sigma',0.5,'nu',1);
 
-% Normal prior
-mean_rc = 1;
+% lognormal
+mean_rc = 0;
 standard_deviation_rc = 1;
-% from 1, mu_R, mu_C and mu_sum coming from 2..
 
-mean_Kc = 1;
+mean_Kc = 0;
 standard_deviation_Kc = 1;
 
-mean_lc = 1;
-standard_deviation_lc = 1;
-
-mean_rr = 1;
+mean_rr = 0;
 standard_deviation_rr = 1;
 
-mean_Kr = 1;
+mean_Kr = 0;
 standard_deviation_Kr = 1;
 
-mean_lr = 1;
+mean_lc = 0;
+standard_deviation_lc = 1;
+
+mean_lr = 0;
 standard_deviation_lr = 1;
 
-mean_V0_sum = 1;
+mean_V0_sum = 0;
 standard_deviation_V0_sum = 1;
 
-mean_sigma = 1;
+mean_sigma = 0;
 standard_deviation_sigma = 1;
+
+% cauchy_prior_sigma = makedist('tLocationScale','mu',mean_sigma,'sigma',...
+%     standard_deviation_sigma,'nu',1);
 
 % [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
 % lc_true,rr_true,Kr_true,lr_twith sigma coming from the sampled 
 % from 1, mu_R, mu_C and mu_sum coming from 2..rue] = generate_fake_realistic_data(V0, tspan, ...
-% sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
+% sampled_accepted_V0_sum_array_no_nantimes_individual_data, sampled_times_sum_data, standard_deviation_noise);
 
 %V0 = nan(number_of_different_ratios_tried,number_of_individual_variables);
 
 for iteration = 1:number_of_iterations
+    
+    if (mod(iteration,1000) == 0)
+        display(['ABC iteration number =', num2str(iteration)]);
+    end
 
     %% 1st step of the ABC algorithm
     % Sampling parameters for the prior
@@ -134,22 +141,38 @@ for iteration = 1:number_of_iterations
 %     V0_sum = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_V0_sum);
 
     % normal prior
-    rc = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_rc,standard_deviation_rc);
-    Kc = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_Kc,standard_deviation_Kc);
-    lc = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_lc,standard_deviation_lc);
-    rr = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_rr,standard_deviation_rr);
-    Kr = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_Kr,standard_deviation_Kr);
-    lr = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_lr,standard_deviation_lr);
-    V0_sum = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_V0_sum,standard_deviation_V0_sum);
-    sigma = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_sigma,standard_deviation_sigma);
+%     rc = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_rc,standard_deviation_rc);
+%     Kc = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_Kc,standard_deviation_Kc);
+%     lc = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_lc,standard_deviation_lc);
+%     rr = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_rr,standard_deviation_rr);
+%     Kr = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_Kr,standard_deviation_Kr);
+%     lr = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_lr,standard_deviation_lr);
+%     V0_sum = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_V0_sum,standard_deviation_V0_sum);
+%     sigma = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_sigma,standard_deviation_sigma);
+
+% Log normal priors
+
+    rc = lognrnd(mean_rc,standard_deviation_rc);
+    Kc = lognrnd(mean_Kc,standard_deviation_Kc);
+    lc = lognrnd(mean_lc,standard_deviation_lc);
+    
+    rr = lognrnd(mean_rr,standard_deviation_rr);
+    Kr = lognrnd(mean_Kr,standard_deviation_Kr);
+    lr = lognrnd(mean_lr,standard_deviation_lr);
+    
+    V0_sum = lognrnd(mean_V0_sum, standard_deviation_V0_sum);
+    
+    sigma = lognrnd(mean_sigma,standard_deviation_sigma);
+    
+%     sigma = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_sigma);
     
     sigma_sum_normal = sigma / sqrt(number_of_experimental_repeats);
     
@@ -223,42 +246,51 @@ for iteration = 1:number_of_iterations
     end
 end
 
-approximate_posterior_mean_rc = nanmean(accepted_rc_array);
-approximate_posterior_mean_Kc = nanmean(accepted_Kc_array);
-approximate_posterior_mean_lc = nanmean(accepted_lc_array);
-approximate_posterior_mean_rr = nanmean(accepted_rr_array);
-approximate_posterior_mean_Kr = nanmean(accepted_Kr_array);
-approximate_posterior_mean_lr = nanmean(accepted_lr_array);
-approximate_posterior_mean_V0_sum = nanmean(accepted_V0_sum_array);
-approximate_posterior_mean_sigma = nanmean(accepted_sigma_array);
+accepted_rc_array_no_nan = accepted_rc_array(~isnan(accepted_rc_array));
+accepted_Kc_array_no_nan = accepted_Kc_array(~isnan(accepted_Kc_array));
+accepted_lc_array_no_nan = accepted_lc_array(~isnan(accepted_lc_array));
+accepted_rr_array_no_nan = accepted_rr_array(~isnan(accepted_rr_array));
+accepted_Kr_array_no_nan = accepted_Kr_array(~isnan(accepted_Kr_array));
+accepted_lr_array_no_nan = accepted_lr_array(~isnan(accepted_lr_array));
+accepted_V0_sum_array_no_nan = accepted_V0_sum_array(~isnan(accepted_V0_sum_array));
+accepted_sigma_array_no_nan = accepted_sigma_array(~isnan(accepted_sigma_array));
 
-approximate_posterior_median_rc = nanmedian(accepted_rc_array);
-approximate_posterior_median_Kc = nanmedian(accepted_Kc_array);
-approximate_posterior_median_lc = nanmedian(accepted_lc_array);
-approximate_posterior_median_rr = nanmedian(accepted_rr_array);
-approximate_posterior_median_Kr = nanmedian(accepted_Kr_array);
-approximate_posterior_median_lr = nanmedian(accepted_lr_array);
-approximate_posterior_median_V0_sum = nanmedian(accepted_V0_sum_array);
-approximate_posterior_median_sigma = nanmedian(accepted_sigma_array);
+approximate_posterior_mean_rc = mean(accepted_rc_array_no_nan);
+approximate_posterior_mean_Kc = mean(accepted_Kc_array_no_nan);
+approximate_posterior_mean_lc = mean(accepted_lc_array_no_nan);
+approximate_posterior_mean_rr = mean(accepted_rr_array_no_nan);
+approximate_posterior_mean_Kr = mean(accepted_Kr_array_no_nan);
+approximate_posterior_mean_lr = mean(accepted_lr_array_no_nan);
+approximate_posterior_mean_V0_sum = mean(accepted_V0_sum_array_no_nan);
+approximate_posterior_mean_sigma = mean(accepted_sigma_array_no_nan);
+
+approximate_posterior_median_rc = median(accepted_rc_array_no_nan);
+approximate_posterior_median_Kc = median(accepted_Kc_array_no_nan);
+approximate_posterior_median_lc = median(accepted_lc_array_no_nan);
+approximate_posterior_median_rr = median(accepted_rr_array_no_nan);
+approximate_posterior_median_Kr = median(accepted_Kr_array_no_nan);
+approximate_posterior_median_lr = median(accepted_lr_array_no_nan);
+approximate_posterior_median_V0_sum = median(accepted_V0_sum_array_no_nan);
+approximate_posterior_median_sigma = median(accepted_sigma_array_no_nan);
 
 % MAP estimates
-MAP_estimate_rc = get_MAP_estimate(accepted_rc_array);
-MAP_estimate_Kc = get_MAP_estimate(accepted_Kc_array);
-MAP_estimate_lc = get_MAP_estimate(accepted_lc_array);
-MAP_estimate_rr = get_MAP_estimate(accepted_rr_array);
-MAP_estimate_Kr = get_MAP_estimate(accepted_Kr_array);
-MAP_estimate_lr = get_MAP_estimate(accepted_lr_array);
-MAP_estimate_V0_sum = get_MAP_estimate(accepted_V0_sum_array);
-MAP_estimate_sigma = get_MAP_estimate(accepted_sigma_array);
+MAP_estimate_rc = get_MAP_estimate(accepted_rc_array_no_nan);
+MAP_estimate_Kc = get_MAP_estimate(accepted_Kc_array_no_nan);
+MAP_estimate_lc = get_MAP_estimate(accepted_lc_array_no_nan);
+MAP_estimate_rr = get_MAP_estimate(accepted_rr_array_no_nan);
+MAP_estimate_Kr = get_MAP_estimate(accepted_Kr_array_no_nan);
+MAP_estimate_lr = get_MAP_estimate(accepted_lr_array_no_nan);
+MAP_estimate_V0_sum = get_MAP_estimate(accepted_V0_sum_array_no_nan);
+MAP_estimate_sigma = get_MAP_estimate(accepted_sigma_array_no_nan);
 
-number_of_accepted_rc = sum(~isnan(accepted_rc_array));
-number_of_accepted_Kc = sum(~isnan(accepted_Kc_array));
-number_of_accepted_lc = sum(~isnan(accepted_lc_array));
-number_of_accepted_rr = sum(~isnan(accepted_rr_array));
-number_of_accepted_Kr = sum(~isnan(accepted_Kr_array));
-number_of_accepted_lr = sum(~isnan(accepted_lr_array));
-number_of_accepted_V0_sum = sum(~isnan(accepted_V0_sum_array));
-number_of_accepted_sigma = sum(~isnan(accepted_sigma_array));
+number_of_accepted_rc = length(accepted_rc_array_no_nan);
+number_of_accepted_Kc = length(accepted_Kc_array_no_nan);
+number_of_accepted_lc = length(accepted_lc_array_no_nan);
+number_of_accepted_rr = length(accepted_rr_array_no_nan);
+number_of_accepted_Kr = length(accepted_Kr_array_no_nan);
+number_of_accepted_lr = length(accepted_lr_array_no_nan);
+number_of_accepted_V0_sum = length(accepted_V0_sum_array_no_nan);
+number_of_accepted_sigma = length(accepted_sigma_array_no_nan);
 
 display('Approximate posterior means for parameters');
 display(['rc = ', num2str(approximate_posterior_mean_rc)]);
@@ -336,7 +368,7 @@ display(['sum of squared_error for estimated parameters by MAP =', ...
 figure;
 subplot(number_of_parameters_to_estimate,1,1);
 
-h = histogram(accepted_rc_array(~isnan(accepted_rc_array)));
+h = histogram(accepted_rc_array_no_nan);
 morebins(h);
 hold on
 plot([rc_true_PC3_0Gy,rc_true_PC3_0Gy],[0,10],'r','LineWidth',4);
@@ -344,21 +376,21 @@ title('Posterior distribution for rc');
 hold off
 
 subplot(number_of_parameters_to_estimate,1,2);
-histogram(accepted_Kc_array(~isnan(accepted_Kc_array)));
+histogram(accepted_Kc_array_no_nan);
 hold on
 plot([Kc_true_PC3_0Gy,Kc_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 title('Posterior distribution for Kc');
 hold off
 
 subplot(number_of_parameters_to_estimate,1,3);
-histogram(accepted_lc_array(~isnan(accepted_lc_array)));
+histogram(accepted_lc_array_no_nan);
 hold on
 plot([lc_true_PC3_0Gy,lc_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 title('Posterior distribution for lc');
 hold off
 
 subplot(number_of_parameters_to_estimate,1,4);
-histogram(accepted_rr_array(~isnan(accepted_rr_array)));
+histogram(accepted_rr_array_no_nan);
 hold on
 plot([rr_true_PC3_0Gy,rr_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 title('Posterior distribution for rr');
@@ -366,7 +398,7 @@ hold off
 
 subplot(number_of_parameters_to_estimate,1,5);
 
-histogram(accepted_Kr_array(~isnan(accepted_Kr_array)));
+histogram(accepted_Kr_array_no_nan);
 hold on
 plot([Kr_true_PC3_0Gy,Kr_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 title('Posterior distribution for Kr');
@@ -374,7 +406,7 @@ hold off
 
 subplot(number_of_parameters_to_estimate,1,6);
 
-histogram(accepted_lr_array(~isnan(accepted_lr_array)));
+histogram(accepted_lr_array_no_nan);
 hold on
 plot([lr_true_PC3_0Gy,lr_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 hold off
@@ -382,7 +414,7 @@ title('Posterior distribution for lr');
 
 subplot(number_of_parameters_to_estimate,1,7);
 
-histogram(accepted_V0_sum_array(~isnan(accepted_V0_sum_array)));
+histogram(accepted_V0_sum_array_no_nan);
 hold on
 plot([V0_sum_true_PC3_0Gy,V0_sum_true_PC3_0Gy],[0,10],'r','LineWidth',4);
 hold off
@@ -390,7 +422,7 @@ title('Posterior distribution for V0 sum');
 
 subplot(number_of_parameters_to_estimate,1,8);
 
-histogram(accepted_sigma_array(~isnan(accepted_sigma_array)));
+histogram(accepted_sigma_array_no_nan);
 title('Posterior distribution for sigma');
 end
 

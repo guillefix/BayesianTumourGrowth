@@ -5,9 +5,9 @@ accepted_rr_array_no_nan,...
 accepted_Kr_array_no_nan,...
 accepted_lr_array_no_nan,...
 accepted_V0_sum_array_no_nan, ...
-accepted_sigma_array_no_nan] = ABC_normal_prior_fitted_sigma()
+accepted_sigma_array_no_nan] = ABC_lognormal_prior()
 
-number_of_iterations = 10000;
+number_of_iterations = 30000;
 beginning_time = 1;
 end_time = 15;
 time_first_individual_data = 10;
@@ -88,40 +88,46 @@ accepted_sigma_array = nan(number_of_iterations,1);
 % cauchy_prior_lr = makedist('tLocationScale','mu',0.5,'sigma',0.5,'nu',1);
 % cauchy_prior_V0_sum = makedist('tLocationScale','mu',0.05,'sigma',0.5,'nu',1);
 
-% Normal prior
-mean_rc = 0.5;
-standard_deviation_rc = 0.5;
-% from 1, mu_R, mu_C and mu_sum coming from 2..
+% lognormal
+mean_rc = 0;
+standard_deviation_rc = 1;
 
-mean_Kc = 1;
+mean_Kc = 0;
 standard_deviation_Kc = 1;
 
-mean_lc = 1;
-standard_deviation_lc = 1;
-
-mean_rr = 1;
+mean_rr = 0;
 standard_deviation_rr = 1;
 
-mean_Kr = 1;
+mean_Kr = 0;
 standard_deviation_Kr = 1;
 
-mean_lr = 1;
+mean_lc = 0;
+standard_deviation_lc = 1;
+
+mean_lr = 0;
 standard_deviation_lr = 1;
 
-mean_V0_sum = 1;
+mean_V0_sum = 0;
 standard_deviation_V0_sum = 1;
 
-mean_sigma = 1;
+mean_sigma = 0;
 standard_deviation_sigma = 1;
+
+% cauchy_prior_sigma = makedist('tLocationScale','mu',mean_sigma,'sigma',...
+%     standard_deviation_sigma,'nu',1);
 
 % [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
 % lc_true,rr_true,Kr_true,lr_twith sigma coming from the sampled 
 % from 1, mu_R, mu_C and mu_sum coming from 2..rue] = generate_fake_realistic_data(V0, tspan, ...
-% sampled_times_individual_data, sampled_times_sum_data, standard_deviation_noise);
+% sampled_accepted_V0_sum_array_no_nantimes_individual_data, sampled_times_sum_data, standard_deviation_noise);
 
 %V0 = nan(number_of_different_ratios_tried,number_of_individual_variables);
 
 for iteration = 1:number_of_iterations
+    
+    if (mod(iteration,1000) == 0)
+        display(['ABC iteration number =', num2str(iteration)]);
+    end
 
     %% 1st step of the ABC algorithm
     % Sampling parameters for the prior
@@ -135,22 +141,38 @@ for iteration = 1:number_of_iterations
 %     V0_sum = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_V0_sum);
 
     % normal prior
-    rc = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_rc,standard_deviation_rc);
-    Kc = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_Kc,standard_deviation_Kc);
-    lc = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_lc,standard_deviation_lc);
-    rr = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_rr,standard_deviation_rr);
-    Kr = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_Kr,standard_deviation_Kr);
-    lr = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_lr,standard_deviation_lr);
-    V0_sum = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_V0_sum,standard_deviation_V0_sum);
-    sigma = get_positive_parameter_sampled_from_normal_distribution(...
-        mean_sigma,standard_deviation_sigma);
+%     rc = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_rc,standard_deviation_rc);
+%     Kc = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_Kc,standard_deviation_Kc);
+%     lc = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_lc,standard_deviation_lc);
+%     rr = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_rr,standard_deviation_rr);
+%     Kr = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_Kr,standard_deviation_Kr);
+%     lr = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_lr,standard_deviation_lr);
+%     V0_sum = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_V0_sum,standard_deviation_V0_sum);
+%     sigma = get_positive_parameter_sampled_from_normal_distribution(...
+%         mean_sigma,standard_deviation_sigma);
+
+% Log normal priors
+
+    rc = lognrnd(mean_rc,standard_deviation_rc);
+    Kc = lognrnd(mean_Kc,standard_deviation_Kc);
+    lc = lognrnd(mean_lc,standard_deviation_lc);
+    
+    rr = lognrnd(mean_rr,standard_deviation_rr);
+    Kr = lognrnd(mean_Kr,standard_deviation_Kr);
+    lr = lognrnd(mean_lr,standard_deviation_lr);
+    
+    V0_sum = lognrnd(mean_V0_sum, standard_deviation_V0_sum);
+    
+    sigma = lognrnd(mean_sigma,standard_deviation_sigma);
+    
+%     sigma = get_positive_parameter_sampled_from_cauchy_distribution(cauchy_prior_sigma);
     
     sigma_sum_normal = sigma / sqrt(number_of_experimental_repeats);
     

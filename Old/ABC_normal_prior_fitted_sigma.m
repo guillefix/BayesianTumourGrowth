@@ -93,26 +93,26 @@ mean_rc = 0.5;
 standard_deviation_rc = 0.5;
 % from 1, mu_R, mu_C and mu_sum coming from 2..
 
-mean_Kc = 1;
-standard_deviation_Kc = 1;
+mean_Kc = 0.5;
+standard_deviation_Kc = 0.5;
 
-mean_lc = 1;
-standard_deviation_lc = 1;
+mean_lc = 0.5;
+standard_deviation_lc = 0.5;
 
-mean_rr = 1;
-standard_deviation_rr = 1;
+mean_rr = 0.5;
+standard_deviation_rr = 0.5;
 
-mean_Kr = 1;
-standard_deviation_Kr = 1;
+mean_Kr = 0.5;
+standard_deviation_Kr = 0.5;
 
-mean_lr = 1;
-standard_deviation_lr = 1;
+mean_lr = 0.5;
+standard_deviation_lr = 0.5;
 
-mean_V0_sum = 1;
-standard_deviation_V0_sum = 1;
+mean_V0_sum = 0.5;
+standard_deviation_V0_sum = 0.5;
 
-mean_sigma = 1;
-standard_deviation_sigma = 1;
+mean_sigma = 0.5;
+standard_deviation_sigma = 0.5;
 
 % [V_fakedata_sum,V_fakedata_1, V_fakedata_2,rc_true,Kc_true,...
 % lc_true,rr_true,Kr_true,lr_twith sigma coming from the sampled 
