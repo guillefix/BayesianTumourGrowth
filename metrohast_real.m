@@ -59,22 +59,71 @@ NLLsig = @(x) findLogLikRealerData(x,odds_of_initial_values,V_sum_data_average_P
     ratiosNumber,x(8),sampled_times_individual_data, ...
     sampled_times_sum_data, x(7),tspan);
 
-NumSample=100000;
+NumSample=10000;
+
+unnorm_posterior = @(x) exp(-NLLsig(x))*16*prod(normpdf(x(1:6),0.5*x0(1:6),0.5))*cauchypdf(x(7),0,1)*2*normpdf(x(8),0,0.1);
 
 xs = [];
-sigma=0.02;
+sigma=0.05;
+accepted_num=0;
+accepted_num_prev = accepted_num;
+filename = 'scatterhist_MCMC_animated.gif';
+
 
 for i=1:NumSample
    if (mod(i,NumSample/100) == 0) disp(i);
    end
    xnew = proposalSample(x,sigma);
-   if (xnew(2) < 0 || xnew(5) < 0 || xnew(1) < 0 || xnew(4) < 0 || xnew(8) <0) continue;
+   if (xnew(2) < 0 || xnew(5) < 0 || xnew(1) < 0 || xnew(4) < 0 || xnew(8) < 0) continue;
    end
-   r = exp(-NLLsig(xnew))*proposalDist(xnew,0.5*x0,2)*proposalDist(x,xnew,sigma)...
-       /(exp(-NLLsig(x))*proposalDist(x,0.5*x0,2)*proposalDist(xnew,x,sigma));
+
+
+  %  if (accepted_num > 0)
+  %    plot(xs(:,1), 'b')
+  %    hold on;
+  %    plot(accepted_num,xs(end,1), 'g.', 'MarkerSize',50)
+  %  end
+  %  plot(accepted_num+1,xnew(1), 'ro', 'MarkerSize',30, 'LineWidth', 5);
+  %  xlim([1,accepted_num+2])
+  %  xlabel('i');
+  %  ylabel('r_c')
+  %  drawnow;
+  %  hold off;
+
+  index1=3;
+  index2=6;
+   if (accepted_num ~= accepted_num_prev)
+     scatterhist(xs(:,index1), xs(:,index2),'Color','b')
+     hold on;
+     plot(xs(end,index1),xs(end,index2),'g.', 'MarkerSize',30)
+    accepted_num_prev = accepted_num;
+   end
+   plot(xnew(index1),xnew(index2), 'r.', 'MarkerSize',30);
+   if (accepted_num > 0)
+     x1=min([0,min(xs(:,index1)), xnew(index1)]);
+     x2=max([1.5,max(xs(:,index1)),xnew(index1)]);
+     y1=min([0,min(xs(:,index2)), xnew(index2)]);
+     y2=max([1.5,max(xs(:,index2)), xnew(index2)]);
+     xlim([x1,x2]);
+     ylim([y1,y2]);
+   end
+   drawnow;
+
+   frame = getframe(1);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    if i == 1;
+        imwrite(imind,cm,filename,'gif', 'Loopcount',inf);
+    else
+        imwrite(imind,cm,filename,'gif','WriteMode','append');
+    end
+
+   r = unnorm_posterior(xnew)*proposalDist(x,xnew,sigma)...
+       /(unnorm_posterior(x)*proposalDist(xnew,x,sigma));
    if (rand < r)
        x = xnew;
        xs = [xs; x];
+       accepted_num=accepted_num+1;
    end
 end
 xs=xs(end/2:end,:);

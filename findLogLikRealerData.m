@@ -1,12 +1,12 @@
-function E = findLogLikRealData(x,odds,V_data_sums,sigmaDataSums,Vdata1s,sigmaData1s,Vdata2s,sigmaData2s,N,V0_sum,sampled_times_individual_data, ...
-    sampled_times_sum_data, standard_deviation_noise,tspan) 
-    
+function E = findLogLikRealerData(x,odds,V_data_sums,sigmaDataSums,Vdata1s,sigmaData1s,Vdata2s,sigmaData2s,N,V0_sum,sampled_times_individual_data, ...
+    sampled_times_sum_data, standard_deviation_noise,tspan)
+
     E = 0;
 
     for ii=1:length(odds)
         o=odds(ii,:);
         V0=o*V0_sum/sum(o);
-        
+
         sigmaDataSum = sigmaDataSums(ii,:);
         sigmaData1 = sigmaData1s(ii,:);
         sigmaData2 = sigmaData2s(ii,:);
@@ -17,11 +17,11 @@ function E = findLogLikRealData(x,odds,V_data_sums,sigmaDataSums,Vdata1s,sigmaDa
         V2=interp1(t,V(:,2),sampled_times_individual_data);
 
         V_sum = interp1(t,V(:,1) + V(:,2),sampled_times_sum_data);
-        
+
         sigma = standard_deviation_noise/sqrt(N);
 
         T=length(sampled_times_individual_data);
-        
+
         for i=1:T
             if (i==T) sigma = standard_deviation_noise/sqrt(N/2);
             else sigma = standard_deviation_noise/sqrt(N);
