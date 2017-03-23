@@ -3,7 +3,7 @@ function draw_violin_diagram()
 % to display the violin plot
 addpath('distributionPlot');
 
-experiment_to_consider = 3;
+experiment_to_consider = 5;
 number_of_samples_from_normal_distribution_around_solution = 100;
 % number_of_posterior_predictive_samples = 10;
 
@@ -63,7 +63,7 @@ rr_samples_from_posterior,...
 Kr_samples_from_posterior,...
 lr_samples_from_posterior,...
 V0_sum_samples_from_posterior, ...
-sigma_samples_from_posterior] = ABC_lognormal_prior();
+sigma_samples_from_posterior] = ABC_normal_and_sigma_prior();
 
 %% Plug sampled parameter values in get_sample_from_posterior_predictive_distributions
 [V_posterior_predictive_1_array, ...
